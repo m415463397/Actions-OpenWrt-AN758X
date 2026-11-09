@@ -1,0 +1,54 @@
+#!/bin/sh
+# Nokia XG-040G-MF (AN7583): LAN1-3 remain LAN; LAN4 becomes DHCP WAN.
+# Run once from uci-defaults. Do not touch PON devices or calibration volumes.
+
+set -eu
+
+# Remove lan4 from the existing br-lan bridge without replacing other ports.
+found_bridge=0
+for section in $(uci -q show network | sed -n 's/^network\.\([^.=]*\)=device$/\1/p'); do
+    name="$(uci -q get "network.$section.name" 2>/dev/null || true)"
+    type="$(uci -q get "network.$section.type" 2>/dev/null || true)"
+    if [ "$name" = "br-lan" ] && [ "$type" = "bridge" ]; then
+        uci -q del_list "network.$section.ports=lan4" || true
+        found_bridge=1
+        break
+    fi
+done
+
+if [ "$found_bridge" -ne 1 ]; then
+    logger -t lan4-wan "br-lan bridge device was not found; refusing to guess network layout"
+    exit 1
+fi
+
+# LAN remains on the original br-lan device; preserve its address and other settings.
+uci -q set network.lan.device='br-lan'
+
+# LAN4 becomes WAN (IPv4 DHCP) and WAN6 (DHCPv6).
+uci -q delete network.wan 2>/dev/null || true
+uci set network.wan='interface'
+uci set network.wan.device='lan4'
+uci set network.wan.proto='dhcp'
+
+uci -q delete network.wan6 2>/dev/null || true
+uci set network.wan6='interface'
+uci set network.wan6.device='@wan'
+uci set network.wan6.proto='dhcpv6'
+uci set network.wan6.reqaddress='try'
+uci set network.wan6.reqprefix='auto'
+
+# Ensure the existing WAN firewall zone includes both WAN logical interfaces.
+for section in $(uci -q show firewall | sed -n 's/^firewall\.\([^.=]*\)=zone$/\1/p'); do
+    zone="$(uci -q get "firewall.$section.name" 2>/dev/null || true)"
+    if [ "$zone" = "wan" ]; then
+        current="$(uci -q get "firewall.$section.network" 2>/dev/null || true)"
+        printf '%s\n' "$current" | grep -qx 'wan' || uci add_list "firewall.$section.network=wan"
+        printf '%s\n' "$current" | grep -qx 'wan6' || uci add_list "firewall.$section.network=wan6"
+        break
+    fi
+done
+
+uci commit network
+uci commit firewall
+logger -t lan4-wan "LAN4 configured as DHCP WAN; LAN1-3 remain in br-lan"
+exit 0
