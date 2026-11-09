@@ -50,8 +50,8 @@ for section in $(uci -q show firewall | sed -n 's/^firewall\.\([^.=]*\)=zone$/\1
     zone="$(uci -q get "firewall.$section.name" 2>/dev/null || true)"
     if [ "$zone" = "wan" ]; then
         current="$(uci -q get "firewall.$section.network" 2>/dev/null || true)"
-        printf '%s\n' "$current" | grep -qx 'wan' || uci add_list "firewall.$section.network=wan"
-        printf '%s\n' "$current" | grep -qx 'wan6' || uci add_list "firewall.$section.network=wan6"
+        case " $current " in *" wan "*) ;; *) uci add_list "firewall.$section.network=wan" ;; esac
+        case " $current " in *" wan6 "*) ;; *) uci add_list "firewall.$section.network=wan6" ;; esac
         break
     fi
 done
