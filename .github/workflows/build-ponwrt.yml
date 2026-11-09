@@ -6,7 +6,7 @@ name: Build PonWrt (Airoha AN758x PON)
 # =========================================================
 env:
   BUILD_ROOT: /workdir
-  SOURCE: ${{ github.event.inputs.source || 'fork' }}
+  SOURCE: ${{ github.event.inputs.source || 'pbs05/ponwrt' }}
   # 唯一真相源：固件版本后缀的作者名（LuCI 概览页「固件版本」）
   # https://github.com/jzhou404gmail/ponwrt/
   #https://github.com/yveming/openwrt-pon
@@ -38,7 +38,7 @@ on:
       source:
         description: '编译源码仓库'
         required: true
-        default: 'fork'
+        default: 'pbs05/ponwrt'
         type: choice
         options:
           - fork
@@ -431,6 +431,8 @@ jobs:
           if [ -n "${FEEDS_CONF}" ] && [ -e "$GITHUB_WORKSPACE/${FEEDS_CONF}" ]; then
             cp "$GITHUB_WORKSPACE/${FEEDS_CONF}" feeds.conf.default
           fi
+          # NPC client + LuCI management feed
+          grep -q '^src-git nps ' feeds.conf.default || echo 'src-git nps https://github.com/djylb/nps-openwrt.git' >> feeds.conf.default
           ./scripts/feeds update -a
           ./scripts/feeds install -a
           # replace the openclash with latest version
