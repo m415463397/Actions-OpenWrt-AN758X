@@ -600,13 +600,13 @@ jobs:
           # 这里显式确认 PON 核心链路还在，否则编出来光口不通
           # =========================================================
           MISSING=""
-          for p in kmod-airoha-xpon kmod-airoha-pon-frontend airoha-pond airoha-ponctl luci-app-pon; do
+          for p in kmod-airoha-xpon kmod-airoha-pon-frontend airoha-pond airoha-ponctl luci-app-pon npc luci-app-npc luci-i18n-npc-zh-cn; do
             if ! grep -q "^CONFIG_PACKAGE_${p}=y" .config; then
               MISSING="$MISSING $p"
             fi
           done
           if [ -n "$MISSING" ]; then
-            echo "::error::以下关键包在 defconfig 后未启用，检查 feeds 是否完整:$MISSING"
+            echo "::error::以下 PON/NPC 关键包在 defconfig 后未启用，检查 feeds 与机型配置:$MISSING"
             exit 1
           fi
           echo "✅ PON 关键包校验通过"
