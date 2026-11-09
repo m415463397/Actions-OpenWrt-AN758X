@@ -178,7 +178,7 @@ endgroup
 
 group "必装插件硬校验"
 # config 里已写 =y 的包都必须出现在这里，否则 defconfig 会静默剔除
-CRITICAL_PKGS=(luci-app-airoha-npu)
+CRITICAL_PKGS=(luci-app-airoha-npu npc luci-app-npc)
 # 若以后新增必装包，在这里追加，例如：
 # CRITICAL_PKGS+=(luci-app-passwall luci-app-mosdns)
 
