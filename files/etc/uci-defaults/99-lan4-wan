@@ -37,13 +37,8 @@ uci set network.wan6.proto='dhcpv6'
 uci set network.wan6.reqaddress='try'
 uci set network.wan6.reqprefix='auto'
 
-# Keep the optical PON netdev up independently of the Ethernet WAN.
-# The upstream AN7583 board setup binds pon0 to "wan"; opening pon0 starts
-# the PMA/PLOAM/OMCI lifecycle. Keep that lifecycle without DHCP/default route.
+# This device uses LAN4 as the Ethernet WAN; do not create a parallel PON interface.
 uci -q delete network.pon 2>/dev/null || true
-uci set network.pon='interface'
-uci set network.pon.device='pon0'
-uci set network.pon.proto='none'
 
 # Ensure the existing WAN firewall zone includes both WAN logical interfaces.
 for section in $(uci -q show firewall | sed -n 's/^firewall\.\([^.=]*\)=zone$/\1/p'); do
