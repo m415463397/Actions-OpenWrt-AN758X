@@ -10,7 +10,7 @@
 
 # ---------- 可按需修改的白名单 ----------
 #KEEP="base package-manager"   # 要保留中文翻译的组件
-KEEP="base luci-app-airoha-npu"   # 要保留中文翻译的组件
+KEEP="base luci-app-airoha-npu npc"   # 要保留中文翻译的组件
 # 需要临时多留几个时也可以用环境变量追加：KEEP_EXTRA="ddns-go" bash diy-part3.sh
 KEEP="$KEEP ${KEEP_EXTRA:-}"
 # ---------------------------------------
@@ -43,7 +43,7 @@ make defconfig
 
 set -euo pipefail
 #KEEP="base package-manager"
-KEEP="base" 
+KEEP="base npc" 
 # 1) 全部关闭
 sed -i -E 's/^(CONFIG_PACKAGE_luci-i18n-[a-zA-Z0-9_-]+-zh-cn)=(y|m)/# \1 is not set/' .config
 # 2) 白名单重开（直接改写为 =y）
